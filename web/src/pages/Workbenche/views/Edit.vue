@@ -1,7 +1,11 @@
 <template>
   <div class="workbencheEditContainer" :class="{ isDark: isDark }">
     <div class="workbencheEditHeader">
-      <MacControl></MacControl>
+      <div class="leftBar">
+        <div class="homeBtn" @click="backHome()">
+          <span class="iconfont iconzhuye"></span>
+        </div>
+      </div>
       <div class="inputBox">
         <el-input
           v-model="name"
@@ -9,14 +13,14 @@
           placeholder=""
           @blur="rename"
           @keyup.enter="rename"
-        ></el-input>
+        >
+          <template slot="append">.smm</template>
+        </el-input>
         <div class="modifyDotBox">
           <div class="modifyDot" v-show="isUnSave"></div>
         </div>
       </div>
-      <div class="rightBar">
-        <WinControl></WinControl>
-      </div>
+      <div class="rightBar"></div>
     </div>
     <Edit></Edit>
   </div>
@@ -24,15 +28,12 @@
 
 <script>
 import Edit from '../../Edit/Index.vue'
-import WinControl from '../components/WinControl.vue'
-import MacControl from '../components/MacControl.vue'
 import { mapState, mapMutations } from 'vuex'
+import { replaceFileInRecent } from '@/utils/storage'
 
 export default {
   components: {
-    Edit,
-    MacControl,
-    WinControl
+    Edit
   },
   data() {
     return {
@@ -40,12 +41,20 @@ export default {
     }
   },
   computed: {
-    ...mapState(['fileName', 'isUnSave', 'isDark'])
+    ...mapState({
+      isDark: state => state.localConfig.isDark,
+      fileName: state => state.fileName,
+      filePath: state => state.filePath,
+      isUnSave: state => state.isUnSave
+    })
   },
   watch: {
-    fileName(val) {
-      this.name = val
-      document.title = val
+    fileName: {
+      immediate: true,
+      handler(val) {
+        this.name = val
+        document.title = val
+      }
     },
     name(val) {
       if (!val.trim()) return
@@ -53,28 +62,58 @@ export default {
     }
   },
   created() {
-    window.onbeforeunload = async e => {
-      e.preventDefault()
-      e.returnValue = ''
-      // 没有未保存内容直接关闭
-      if (!this.isUnSave) {
-        window.electronAPI.destroy()
-      } else {
-        try {
-          // 否则询问用户是否关闭
-          await this.checkIsClose()
-          window.electronAPI.destroy()
-        } catch (error) {}
+    utools.onPluginOut(isKill => {
+      if (isKill && this.filePath) {
+        this.$bus.$emit('saveToLocal')
       }
-    }
+    })
   },
   methods: {
-    ...mapMutations(['setFileName']),
+    ...mapMutations(['setFileName', 'setFilePath']),
+
+    // 返回主界面
+    backHome() {
+      if (this.isUnSave) {
+        this.$confirm('有操作尚未保存，是否确认离开？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+          customClass: this.isDark ? 'darkElMessageBox' : ''
+        })
+          .then(async () => {
+            this.setFileName('')
+            this.setFilePath('')
+            this.$router.push({
+              name: 'WorkbencheHome'
+            })
+          })
+          .catch(() => {})
+        return
+      }
+      this.setFileName('')
+      this.setFilePath('')
+      this.$router.push({
+        name: 'WorkbencheHome'
+      })
+    },
 
     // 重命名文件
-    rename() {
-      let id = this.$route.params.id
-      window.electronAPI.rename(id, this.name.trim())
+    async rename() {
+      if (!this.filePath) return
+      try {
+        const oldPath = this.filePath
+        const newPath = await window.electronAPI.rename(
+          this.filePath,
+          this.name.trim()
+        )
+        this.setFilePath(newPath)
+        replaceFileInRecent(oldPath, newPath)
+        this.$bus.$emit('refreshRecentFileList')
+        this.$message.success('文件重命名成功')
+      } catch (error) {
+        this.$message.error('文件重命名失败')
+        console.log(error)
+      }
     },
 
     // 询问是否关闭页面
@@ -83,7 +122,8 @@ export default {
         this.$confirm('有操作尚未保存，是否确认关闭？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
-          type: 'warning'
+          type: 'warning',
+          customClass: this.isDark ? 'darkElMessageBox' : ''
         })
           .then(async () => {
             resolve()
@@ -99,10 +139,19 @@ export default {
 
 <style lang="less" scoped>
 .workbencheEditContainer {
-
   &.isDark {
     .workbencheEditHeader {
       background-color: #262a2e;
+
+      .leftBar {
+        .homeBtn {
+          color: #fff;
+
+          &:hover {
+            background-color: rgb(55, 59, 63);
+          }
+        }
+      }
     }
   }
 
@@ -115,6 +164,28 @@ export default {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+
+    .leftBar {
+      margin-left: 12px;
+      -webkit-app-region: no-drag;
+
+      .homeBtn {
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        .iconfont {
+        }
+      }
+    }
 
     .inputBox {
       -webkit-app-region: no-drag;

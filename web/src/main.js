@@ -8,7 +8,7 @@ import '@/assets/icon-font/iconfont.css'
 import 'viewerjs/dist/viewer.css'
 import VueViewer from 'v-viewer'
 import i18n from './i18n'
-import './css/global.css'
+import './css/global.less'
 import { getLang } from '@/api'
 // import VConsole from 'vconsole'
 // const vConsole = new VConsole()
@@ -24,7 +24,8 @@ Vue.mixin({
       IS_ELECTRON: window.IS_ELECTRON,
       IS_MAC: window.platform === 'darwin',
       IS_WIN: window.platform === 'win32',
-      IS_LINUX: window.platform === 'linux'
+      IS_LINUX: window.platform === 'linux',
+      IS_UTOOLS: process.env.NODE_ENV === 'utools'
     }
   }
 })

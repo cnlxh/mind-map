@@ -118,3 +118,13 @@ export const setImgToClipboard = img => {
     navigator.clipboard.write(data)
   }
 }
+
+// 获取一个文件路径中的文件名
+export const getFileName = (filePath) => {
+  const res = filePath.match(/([^/]+)\.smm$/)
+  if (res && res[1]) {
+    return res[1]
+  } else {
+    return ''
+  }
+}

@@ -8,11 +8,23 @@
 </template>
 
 <script>
-import { create } from '../utils'
+import { v4 as uuid } from 'uuid'
+import { mapMutations } from 'vuex'
 
 export default {
   methods: {
-    create
+    ...mapMutations(['setFileName', 'setFilePath']),
+
+    create() {
+      this.setFileName('')
+      this.setFilePath('')
+      this.$router.push({
+        name: 'WorkbencheEdit',
+        params: {
+          id: uuid()
+        }
+      })
+    }
   }
 }
 </script>

@@ -7,8 +7,10 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    fileName: '',// 本地的文件名
-    isUnSave: false,// 当前操作是否未保存
+    fileName: '', // 本地的文件名
+    filePath: '', // 本地文件路径
+    isUnSave: false, // 当前操作是否未保存
+    isNeedCreate: false, // 返回到主页时是否需要新建文件
     mindMapData: null, // 思维导图数据
     isHandleLocalFile: false, // 是否操作的是本地文件
     localConfig: {
@@ -26,8 +28,8 @@ const store = new Vuex.Store({
       isDark: false
     },
     activeSidebar: '', // 当前显示的侧边栏
-    localEditList: [],// 客户端中正在编辑的思维导图列表
-    isOutlineEdit: false,// 是否是大纲编辑模式
+    localEditList: [], // 客户端中正在编辑的思维导图列表
+    isOutlineEdit: false, // 是否是大纲编辑模式
     isReadonly: false, // 是否只读
     isSourceCodeEdit: false, // 是否是源码编辑模式
     extraTextOnExport: '', // 导出时底部添加的文字
@@ -38,7 +40,8 @@ const store = new Vuex.Store({
     supportExcel: false, // 是否支持Excel插件
     supportCheckbox: false, // 是否支持Checkbox插件
     supportLineFlow: false, // 是否支持LineFlow插件
-    isDragOutlineTreeNode: false // 当前是否正在拖拽大纲树的节点
+    isDragOutlineTreeNode: false, // 当前是否正在拖拽大纲树的节点
+    currentFolder: '' // 当前打开的目录
   },
   mutations: {
     // 设置本地文件名
@@ -46,9 +49,22 @@ const store = new Vuex.Store({
       state.fileName = data
     },
 
+    // 设置当前正在编辑的文件路径
+    setFilePath(state, data) {
+      state.filePath = data
+    },
+
     // 设置当前操作是否未保存
     setIsUnSave(state, data) {
       state.isUnSave = data
+    },
+
+    setIsNeedCreate(state, data) {
+      state.isNeedCreate = data
+    },
+
+    setCurrentFolder(state, data) {
+      state.currentFolder = data
     },
 
     /**

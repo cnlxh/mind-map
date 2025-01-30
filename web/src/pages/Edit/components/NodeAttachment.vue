@@ -18,6 +18,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   props: {
     mindMap: {
@@ -35,6 +37,11 @@ export default {
       node: null,
       icon: null
     }
+  },
+  computed: {
+    ...mapState({
+      filePath: state => state.filePath
+    })
   },
   created() {
     this.$bus.$on('node_attachmentClick', this.onNodeAttachmentClick)
@@ -72,16 +79,25 @@ export default {
       // })
       const openDirectory = config.openDirectory || false
       const isRelative = config.isRelative || false
-      // 保存相对路径
-      let filePath = ''
-      if (isRelative) {
-        filePath = await window.electronAPI.getFilePath(this.$route.params.id)
+      const properties = ['openFile']
+      // 选择目录
+      if (openDirectory) {
+        properties.push('openDirectory')
       }
-      const file = await window.electronAPI.selectFile(openDirectory, filePath)
-      if (file) {
-        activeNodes.forEach(node => {
-          node.setAttachment(file.file, file.name)
-        })
+      const res = utools.showOpenDialog({
+        title: '选择',
+        properties
+      })
+      if (res && res[0]) {
+        const file = window.electronAPI.getRelativePath(
+          res[0],
+          isRelative ? this.filePath : ''
+        )
+        if (file) {
+          activeNodes.forEach(node => {
+            node.setAttachment(file.file, file.name)
+          })
+        }
       }
     },
 
@@ -90,12 +106,14 @@ export default {
       // console.log(node.getData('attachmentUrl'))
       const file = node.getData('attachmentUrl')
       if (!file) return
-      const filePath = await window.electronAPI.getFilePath(
-        this.$route.params.id
+      const absolutePath = window.electronAPI.getAbsolutePath(
+        file,
+        this.filePath
       )
-      const error = await window.electronAPI.openPath(file, filePath)
-      if (error) {
-        this.$message.error(error)
+      if (absolutePath) {
+        utools.shellOpenPath(absolutePath)
+      } else {
+        this.$message.error('打开失败')
       }
     },
 
@@ -103,9 +121,12 @@ export default {
     async openFileInDir() {
       if (!this.node || !this.show) return
       const file = this.node.getData('attachmentUrl')
-      const error = await window.electronAPI.openFileInDir(file)
-      if (error) {
-        this.$message.error(error)
+      const absolutePath = window.electronAPI.getAbsolutePath(
+        file,
+        this.filePath
+      )
+      if (absolutePath) {
+        utools.shellShowItemInFolder(absolutePath)
       }
     },
 

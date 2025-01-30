@@ -56,7 +56,7 @@
           default:
             break
         }
-        window.electronAPI.openUrl(url)
+        utools.shellOpenExternal(url)
       }
     }
   }

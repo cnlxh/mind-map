@@ -127,7 +127,8 @@ import NodeIconSidebar from './NodeIconSidebar.vue'
 import NodeIconToolbar from './NodeIconToolbar.vue'
 import {
   removeMindMapNodeStickerProtocol,
-  addMindMapNodeStickerProtocol
+  addMindMapNodeStickerProtocol,
+  getFileName
 } from '@/utils'
 import OutlineEdit from './OutlineEdit.vue'
 import { showLoading, hideLoading } from '@/utils/loading'
@@ -142,6 +143,7 @@ import NodeTagStyle from './NodeTagStyle.vue'
 import Setting from './Setting.vue'
 import AssociativeLineStyle from './AssociativeLineStyle.vue'
 import NodeImgPlacementToolbar from './NodeImgPlacementToolbar.vue'
+import { getClientConfig, saveToRecent } from '@/utils/storage'
 
 // 注册插件
 MindMap.usePlugin(MiniMap)
@@ -216,6 +218,7 @@ export default {
   computed: {
     ...mapState({
       fileName: state => state.fileName,
+      filePath: state => state.filePath,
       isZenMode: state => state.localConfig.isZenMode,
       openNodeRichText: state => state.localConfig.openNodeRichText,
       isShowScrollbar: state => state.localConfig.isShowScrollbar,
@@ -225,7 +228,9 @@ export default {
       isUseHandDrawnLikeStyle: state =>
         state.localConfig.isUseHandDrawnLikeStyle,
       extraTextOnExport: state => state.extraTextOnExport,
-      isDragOutlineTreeNode: state => state.isDragOutlineTreeNode
+      isDragOutlineTreeNode: state => state.isDragOutlineTreeNode,
+      currentFolder: state => state.currentFolder,
+      isDark: state => state.localConfig.isDark
     })
   },
   watch: {
@@ -277,6 +282,7 @@ export default {
     this.$bus.$off('execCommand', this.execCommand)
     this.$bus.$off('paddingChange', this.onPaddingChange)
     this.$bus.$off('export', this.export)
+    this.$bus.$off('exportJson', this.exportJson)
     this.$bus.$off('setData', this.setData)
     this.$bus.$off('startTextEdit', this.handleStartTextEdit)
     this.$bus.$off('endTextEdit', this.handleEndTextEdit)
@@ -285,10 +291,16 @@ export default {
     this.$bus.$off('node_tree_render_end', this.handleHideLoading)
     this.$bus.$off('showLoading', this.handleShowLoading)
     window.removeEventListener('resize', this.handleResize)
+    if (window.IS_ELECTRON) {
+      this.mindMap.keyCommand.removeShortcut('Control+s')
+      this.$bus.$off('saveToLocal', this.saveToLocal)
+    }
+    this.unBindSaveEvent()
     this.mindMap.destroy()
+    clearTimeout(this.autoSaveTimer)
   },
   methods: {
-    ...mapMutations(['setFileName', 'setIsUnSave']),
+    ...mapMutations(['setFileName', 'setIsUnSave', 'setFilePath']),
 
     handleStartTextEdit() {
       this.mindMap.renderer.startTextEdit()
@@ -330,14 +342,29 @@ export default {
      * @Desc: 获取思维导图数据，实际应该调接口获取
      */
     async getData() {
-      let data = await window.electronAPI.getFileContent(this.$route.params.id)
-      this.clientConfig = await window.electronAPI.getClientConfig()
+      let data = null
+      if (this.filePath) {
+        data = await window.electronAPI.getFileContent(this.filePath)
+      }
+      this.clientConfig = getClientConfig() || {}
       const defaultTheme = this.clientConfig.theme || 'classic4'
       const defaultLayout = this.clientConfig.layout || 'logicalStructure'
       let storeData = null
       if (data) {
         this.setFileName(data.name)
         if (data.content) {
+          if (!data.content.root) {
+            data = {
+              content: {
+                root: data.content,
+                layout: defaultLayout,
+                theme: {
+                  template: defaultTheme,
+                  config: {}
+                }
+              }
+            }
+          }
           addMindMapNodeStickerProtocol(data.content.root)
           storeData = data.content
         } else {
@@ -365,43 +392,55 @@ export default {
 
     // 存储数据当数据有变时
     bindSaveEvent() {
-      this.$bus.$on('data_change', data => {
-        if (!this.isFirst) {
-          this.autoSave()
-          this.setIsUnSave(true)
-        } else {
-          this.isFirst = false
-        }
-        storeData(data)
-      })
-      this.$bus.$on('view_data_change', data => {
-        if (
-          (!this.clientConfig || !this.clientConfig.viewTranslateChangeTriggerAutoSave) && 
-          this.lastViewData.transform.scaleX === data.transform.scaleX &&
-          this.lastViewData.transform.scaleY === data.transform.scaleY
-        ) {
-          this.lastViewData = simpleDeepClone(data)
-          return
-        }
-        this.lastViewData = simpleDeepClone(data)
+      this.$bus.$on('data_change', this.onDataChange)
+      this.$bus.$on('view_data_change', this.onViewDataChange)
+    },
+
+    unBindSaveEvent() {
+      this.$bus.$off('data_change', this.onDataChange)
+      this.$bus.$off('view_data_change', this.onViewDataChange)
+    },
+
+    // 思维导图数据改变
+    onDataChange(data) {
+      if (!this.isFirst) {
         this.autoSave()
         this.setIsUnSave(true)
-        clearTimeout(this.storeConfigTimer)
-        this.storeConfigTimer = setTimeout(() => {
-          storeConfig({
-            view: data
-          })
-        }, 300)
-      })
+      } else {
+        this.isFirst = false
+      }
+      storeData(data)
     },
 
     // 自动保存
     autoSave() {
       clearTimeout(this.autoSaveTimer)
       this.autoSaveTimer = setTimeout(() => {
+        if (this.$route.name !== 'WorkbencheEdit') return
         if (this.isNewFile) return
         this.saveToLocal()
       }, 5000)
+    },
+
+    onViewDataChange(data) {
+      if (
+        (!this.clientConfig ||
+          !this.clientConfig.viewTranslateChangeTriggerAutoSave) &&
+        this.lastViewData.transform.scaleX === data.transform.scaleX &&
+        this.lastViewData.transform.scaleY === data.transform.scaleY
+      ) {
+        this.lastViewData = simpleDeepClone(data)
+        return
+      }
+      this.lastViewData = simpleDeepClone(data)
+      this.autoSave()
+      this.setIsUnSave(true)
+      clearTimeout(this.storeConfigTimer)
+      this.storeConfigTimer = setTimeout(() => {
+        storeConfig({
+          view: data
+        })
+      }, 300)
     },
 
     /**
@@ -465,7 +504,8 @@ export default {
             {
               confirmButtonText: this.$t('edit.yes'),
               cancelButtonText: this.$t('edit.no'),
-              type: 'warning'
+              type: 'warning',
+              customClass: this.isDark ? 'darkElMessageBox' : ''
             }
           )
         },
@@ -513,7 +553,8 @@ export default {
               {
                 confirmButtonText: this.$t('edit.yes'),
                 cancelButtonText: this.$t('edit.no'),
-                type: 'warning'
+                type: 'warning',
+                customClass: this.isDark ? 'darkElMessageBox' : ''
               }
             )
               .then(() => {
@@ -525,7 +566,7 @@ export default {
           })
         },
         customHyperlinkJump(link) {
-          window.electronAPI.openUrl(link)
+          utools.shellOpenExternal(link)
         }
         // createNodePrefixContent: node => {
         //   const el = document.createElement('div')
@@ -838,19 +879,42 @@ export default {
 
     // 保存到本地文件
     async saveToLocal() {
-      let id = this.$route.params.id
       let data = this.mindMap.getData(true)
       removeMindMapNodeStickerProtocol(data.root)
-      let res = await window.electronAPI.save(
-        id,
-        JSON.stringify(data),
-        this.fileName
-      )
-      if (res) {
-        this.isNewFile = false
-        this.setFileName(res)
+      data = JSON.stringify(data)
+      if (!this.filePath) {
+        const res = utools.showSaveDialog({
+          title: '保存',
+          defaultPath:
+            (this.currentFolder ? this.currentFolder + '/' : '') +
+            this.fileName +
+            '.smm',
+          filters: [{ name: '思维导图', extensions: ['smm'] }]
+        })
+        if (res) {
+          try {
+            this.setFilePath(res)
+            await window.electronAPI.save(res, data)
+            this.isNewFile = false
+            const fileName = getFileName(res)
+            this.setFileName(fileName)
+            this.setIsUnSave(false)
+            await saveToRecent(res)
+            this.$bus.$emit('refreshRecentFileList')
+          } catch (error) {
+            this.$message.error('保存失败')
+            console.log(error)
+          }
+        }
+      } else {
+        try {
+          await window.electronAPI.save(this.filePath, data)
+          this.setIsUnSave(false)
+        } catch (error) {
+          this.$message.error('保存失败')
+          console.log(error)
+        }
       }
-      this.setIsUnSave(false)
     },
 
     // 加载滚动条插件

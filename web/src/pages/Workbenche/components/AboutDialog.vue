@@ -6,7 +6,7 @@
     width="480px"
     @close="onClose"
   >
-    <div class="aboutBox">
+    <div class="aboutBox" :class="{ isDark: isDark }">
       <img src="../../../assets/img/icon.png" alt="" />
       <h2>思绪思维导图</h2>
       <p>版本：{{ version }}</p>
@@ -18,17 +18,13 @@
         获取源码：
         <span @click="open('mind-map')">mind-map</span>
       </p>
-      <p>
-        下载最新版本：
-        <span @click="open('baiduNet')">百度云</span>
-        <span @click="open('releases')">releases</span>
-      </p>
     </div>
   </el-dialog>
 </template>
 
 <script>
 import pkg from '../../../../package.json'
+import { mapState } from 'vuex'
 
 export default {
   model: {
@@ -47,6 +43,11 @@ export default {
       version: pkg.version
     }
   },
+  computed: {
+    ...mapState({
+      isDark: state => state.localConfig.isDark
+    })
+  },
   watch: {
     value(val, oldVal) {
       this.dialogVisible = val
@@ -64,7 +65,7 @@ export default {
           url = 'https://wanglin2.github.io/mind-map-docs/'
           break
         case 'mind-map':
-          url = 'https://github.com/wanglin2/mind-map/tree/electron'
+          url = 'https://github.com/wanglin2/mind-map/tree/utools'
           break
         case 'baiduNet':
           url = 'https://pan.baidu.com/s/1huasEbKsGNH2Af68dvWiOg?pwd=3bp3'
@@ -75,7 +76,7 @@ export default {
         default:
           break
       }
-      window.electronAPI.openUrl(url)
+      utools.shellOpenExternal(url)
     }
   }
 }
@@ -94,6 +95,13 @@ export default {
   align-items: center;
   justify-content: center;
   padding-bottom: 30px;
+
+  &.isDark {
+    .h2,
+    p {
+      color: hsla(0, 0%, 100%, 0.6);
+    }
+  }
 
   img {
     width: 100px;

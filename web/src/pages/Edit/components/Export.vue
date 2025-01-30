@@ -251,6 +251,12 @@ export default {
 <style lang="less" scoped>
 .exportContainer {
   &.isDark {
+    .nameInputBox {
+      .name {
+        color: hsla(0, 0%, 100%, 0.6);
+      }
+    }
+
     .downloadTypeList {
       .downloadTypeItem {
         background-color: #363b3f;

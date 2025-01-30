@@ -1,0 +1,15 @@
+{
+  "logo": "logo.png",
+  "main": "./dist/index.html",
+  "features": [
+    {
+      "code": "simpleMindMap",
+      "cmds": ["思绪", "思维导图"],
+      "explain": "思绪思维导图"
+    }
+  ],
+  "preload": "./preload.js",
+  "development": {
+    "main": "http://localhost:8080/#/workbenche"
+  }
+}

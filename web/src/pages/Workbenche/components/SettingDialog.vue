@@ -6,7 +6,7 @@
     width="480px"
     @close="onClose"
   >
-    <div class="settingBox">
+    <div class="settingBox" :class="{ isDark: isDark }">
       <div class="row">
         <div class="label">默认结构</div>
         <el-select
@@ -58,6 +58,13 @@
           @change="onChange"
         ></el-checkbox>
       </div>
+      <div class="row">
+        <div class="label">暗黑模式</div>
+        <el-checkbox
+          v-model="otherConfig.isDark"
+          @change="toggleDark"
+        ></el-checkbox>
+      </div>
     </div>
   </el-dialog>
 </template>
@@ -67,6 +74,8 @@ import { layoutList } from 'simple-mind-map/src/constants/constant'
 import { layoutImgMap } from '@/config/constant.js'
 import themeList from 'simple-mind-map-plugin-themes/themeList'
 import themeImgMap from 'simple-mind-map-plugin-themes/themeImgMap'
+import { getClientConfig, saveClientConfig } from '@/utils/storage'
+import { mapState, mapMutations } from 'vuex'
 
 export default {
   model: {
@@ -98,14 +107,23 @@ export default {
         theme: '',
         viewTranslateChangeTriggerAutoSave: false
       },
-      clientConfig: null
+      clientConfig: null,
+      otherConfig: {
+        isDark: false
+      }
     }
+  },
+  computed: {
+    ...mapState({
+      isDark: state => state.localConfig.isDark
+    })
   },
   watch: {
     value(val, oldVal) {
       this.dialogVisible = val
       if (val && !oldVal) {
         this.getConfig()
+        this.getOtherConfig()
       }
     }
   },
@@ -113,12 +131,14 @@ export default {
     this.onClose()
   },
   methods: {
+    ...mapMutations(['setLocalConfig']),
+
     onClose() {
       this.$emit('change', false)
     },
 
-    async getConfig() {
-      this.clientConfig = await window.electronAPI.getClientConfig()
+    getConfig() {
+      this.clientConfig = getClientConfig() || {}
       this.config.layout = this.clientConfig.layout || 'logicalStructure'
       this.config.theme = this.clientConfig.theme || 'classic4'
       this.config.viewTranslateChangeTriggerAutoSave =
@@ -126,9 +146,19 @@ export default {
     },
 
     onChange() {
-      window.electronAPI.saveClientConfig({
+      saveClientConfig({
         ...this.clientConfig,
         ...this.config
+      })
+    },
+
+    getOtherConfig() {
+      this.otherConfig.isDark = this.isDark
+    },
+
+    toggleDark(val) {
+      this.setLocalConfig({
+        isDark: val
       })
     }
   }
@@ -143,6 +173,14 @@ export default {
 
   .settingBox {
     padding: 20px;
+
+    &.isDark {
+      .row {
+        .label {
+          color: hsla(0, 0%, 100%, 0.6);
+        }
+      }
+    }
 
     .row {
       display: flex;

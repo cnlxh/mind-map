@@ -217,12 +217,12 @@
 
 <script>
 import { mapState, mapMutations } from 'vuex'
-import { create } from '../../Workbenche/utils'
 import { getTextFromHtml, imgToDataUrl } from 'simple-mind-map/src/utils'
 import { transformToMarkdown } from 'simple-mind-map/src/parse/toMarkdown'
 import { transformToTxt } from 'simple-mind-map/src/parse/toTxt'
 import { setDataToClipboard, setImgToClipboard, copy } from '@/utils'
 import { numberTypeList, numberLevelList } from '@/config'
+import { v4 as uuid } from 'uuid'
 
 /**
  * @Author: 王林
@@ -257,7 +257,8 @@ export default {
       isZenMode: state => state.localConfig.isZenMode,
       isDark: state => state.localConfig.isDark,
       supportNumbers: state => state.supportNumbers,
-      supportCheckbox: state => state.supportCheckbox
+      supportCheckbox: state => state.supportCheckbox,
+      isUnSave: state => state.isUnSave
     }),
     expandList() {
       return [
@@ -359,7 +360,12 @@ export default {
     this.$bus.$off('translate', this.hide)
   },
   methods: {
-    ...mapMutations(['setLocalConfig']),
+    ...mapMutations([
+      'setLocalConfig',
+      'setFileName',
+      'setFilePath',
+      'setIsNeedCreate'
+    ]),
 
     // 计算右键菜单元素的显示位置
     getShowPosition(x, y) {
@@ -496,9 +502,16 @@ export default {
 
     // 新建文件
     createNewFile() {
-      create()
+      if (this.isUnSave) {
+        this.$message.warning('当前文件存在未保存的操作')
+        return
+      }
+      this.setIsNeedCreate(true)
+      this.$router.push({
+        name: 'WorkbencheHome'
+      })
     },
-    
+
     // 设置节点编号
     setNodeNumber(prop, value) {
       if (prop === 'type') {

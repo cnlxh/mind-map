@@ -167,7 +167,7 @@
         <span class="icon iconfont iconfujian"></span>
         <span class="text">{{ $t('toolbar.attachment') }}</span>
         <div class="subToolbar">
-          <div class="subToolbarBtn" @click.stop>
+          <div class="subToolbarBtn" @click.stop v-if="filePath">
             <el-checkbox v-model="isRelative">{{
               $t('toolbar.isRelative')
             }}</el-checkbox>
@@ -231,7 +231,8 @@ export default {
   computed: {
     ...mapState({
       isDark: state => state.localConfig.isDark,
-      supportMark: state => state.supportMark
+      supportMark: state => state.supportMark,
+      filePath: state => state.filePath
     }),
     hasRoot() {
       return (

@@ -1,21 +1,6 @@
 <template>
   <div class="navigatorContainer" :class="{ isDark: isDark }">
     <div class="item">
-      <el-select
-        v-model="lang"
-        size="small"
-        style="width: 100px"
-        @change="onLangChange"
-      >
-        <el-option
-          v-for="item in langList"
-          :key="item.value"
-          :label="item.name"
-          :value="item.value"
-        />
-      </el-select>
-    </div>
-    <div class="item">
       <el-tooltip
         effect="dark"
         :content="$t('navigatorToolbar.backToRoot')"
@@ -97,11 +82,8 @@
         <div class="btn iconfont iconbangzhu"></div>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="github">Github</el-dropdown-item>
-          <el-dropdown-item command="helpDoc">使用文档</el-dropdown-item>
-          <el-dropdown-item command="devDoc">开发文档</el-dropdown-item>
           <el-dropdown-item command="site">官方网站</el-dropdown-item>
           <el-dropdown-item command="issue">意见反馈</el-dropdown-item>
-          <el-dropdown-item disabled>当前：v{{ version }}</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
@@ -116,7 +98,6 @@ import { langList } from '@/config'
 import i18n from '@/i18n'
 import { storeLang, getLang } from '@/api'
 import { mapState, mapMutations } from 'vuex'
-import pkg from 'simple-mind-map/package.json'
 import Demonstrate from './Demonstrate.vue'
 
 /**
@@ -139,7 +120,6 @@ export default {
   },
   data() {
     return {
-      version: pkg.version,
       langList,
       lang: '',
       openMiniMap: false
@@ -174,9 +154,9 @@ export default {
     },
 
     openGithub() {
-      window.electronAPI.openUrl('https://github.com/wanglin2/mind-map')
+      utools.shellOpenExternal('https://github.com/wanglin2/mind-map')
     },
-    
+
     showSearch() {
       this.$bus.$emit('show_search')
     },
@@ -197,7 +177,8 @@ export default {
           url = 'https://wanglin2.github.io/mind-map-docs/help/help1.html'
           break
         case 'devDoc':
-          url = 'https://wanglin2.github.io/mind-map-docs/start/introduction.html'
+          url =
+            'https://wanglin2.github.io/mind-map-docs/start/introduction.html'
           break
         case 'site':
           url = 'https://wanglin2.github.io/mind-map-docs/'
@@ -209,7 +190,7 @@ export default {
           break
       }
       if (window.IS_ELECTRON) {
-        window.electronAPI.openUrl(url)
+        utools.shellOpenExternal(url)
       } else {
         const a = document.createElement('a')
         a.href = url

@@ -524,7 +524,8 @@ export default {
         {
           confirmButtonText: this.$t('setting.confirm'),
           cancelButtonText: this.$t('setting.cancel'),
-          type: 'warning'
+          type: 'warning',
+          customClass: this.isDark ? 'darkElMessageBox' : ''
         }
       )
         .then(() => {
