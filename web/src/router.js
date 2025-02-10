@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import EditPage from '@/pages/Edit/Index'
 import WorkbenchePage from '@/pages/Workbenche/Index'
 import WorkbencheHomePage from '@/pages/Workbenche/views/Home'
 import WorkbencheEditPage from '@/pages/Workbenche/views/Edit'
@@ -10,8 +9,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'Edit',
-    component: EditPage
+    redirect: '/workbenche'
   },
   {
     path: '/workbenche',
@@ -22,19 +20,14 @@ const routes = [
       {
         path: 'home',
         name: 'WorkbencheHome',
-        component: WorkbencheHomePage,
+        component: WorkbencheHomePage
       },
       {
         path: 'edit/:id',
         name: 'WorkbencheEdit',
-        component: WorkbencheEditPage,
+        component: WorkbencheEditPage
       }
     ]
-  },
-
-  {
-    path: '/doc/zh',
-    component: () => import(`./pages/Doc.vue`)
   }
 ]
 

@@ -81,7 +81,7 @@ export const addMindMapNodeStickerProtocol = (data) => {
     let image = root.data.image
     if (image && !checkIsHttpOrDataUrl(image)) {
       const res = image.match(/img\/[^/]+\.svg$/)
-      root.data.image = dev ? res[0] : 'app://./' + res[0]
+      root.data.image = dev ? res[0] : './' + res[0]
     }
     if (root.children && root.children.length > 0) {
       root.children.forEach((item) => {

@@ -10,6 +10,6 @@
   ],
   "preload": "preload.js",
   "development": {
-    "main": "http://localhost:8080/#/workbenche"
+    "main": "http://localhost:8080/"
   }
 }
