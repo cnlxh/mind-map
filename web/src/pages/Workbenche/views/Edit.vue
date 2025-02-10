@@ -2,7 +2,7 @@
   <div class="workbencheEditContainer" :class="{ isDark: isDark }">
     <div class="workbencheEditHeader">
       <div class="leftBar">
-        <div class="homeBtn" @click="backHome()">
+        <div class="homeBtn" @click="backHome()" v-show="showBackHomeBtn">
           <span class="iconfont iconzhuye"></span>
         </div>
       </div>
@@ -45,8 +45,14 @@ export default {
       isDark: state => state.localConfig.isDark,
       fileName: state => state.fileName,
       filePath: state => state.filePath,
-      isUnSave: state => state.isUnSave
-    })
+      isUnSave: state => state.isUnSave,
+      isOutlineEdit: state => state.isOutlineEdit,
+      isSourceCodeEdit: state => state.isSourceCodeEdit
+    }),
+
+    showBackHomeBtn() {
+      return !(this.isOutlineEdit || this.isSourceCodeEdit)
+    }
   },
   watch: {
     fileName: {
@@ -69,7 +75,21 @@ export default {
     })
   },
   methods: {
-    ...mapMutations(['setFileName', 'setFilePath']),
+    ...mapMutations(['setFileName', 'setFilePath', 'setActiveSidebar']),
+
+    resetData() {
+      this.setActiveSidebar(null)
+      this.setFileName('')
+      this.setFilePath('')
+    },
+
+    pushRouter() {
+      this.$nextTick(() => {
+        this.$router.push({
+          name: 'WorkbencheHome'
+        })
+      })
+    },
 
     // 返回主界面
     backHome() {
@@ -81,20 +101,14 @@ export default {
           customClass: this.isDark ? 'darkElMessageBox' : ''
         })
           .then(async () => {
-            this.setFileName('')
-            this.setFilePath('')
-            this.$router.push({
-              name: 'WorkbencheHome'
-            })
+            this.resetData()
+            this.pushRouter()
           })
           .catch(() => {})
         return
       }
-      this.setFileName('')
-      this.setFilePath('')
-      this.$router.push({
-        name: 'WorkbencheHome'
-      })
+      this.resetData()
+      this.pushRouter()
     },
 
     // 重命名文件
