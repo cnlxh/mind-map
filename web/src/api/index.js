@@ -38,7 +38,7 @@ export const getData = () => {
         }
       } else {
         return parsedData
-      } 
+      }
     } catch (error) {
       return simpleDeepClone(exampleData)
     }
@@ -86,6 +86,9 @@ export const storeData = data => {
 export const storeConfig = config => {
   try {
     if (window.IS_ELECTRON) {
+      if (config.theme || config.layout) {
+        Vue.prototype.$bus.$emit('set_unsave', true)
+      }
       if (!config.config) return
       let dataStr = JSON.stringify(config.config)
       localStorage.setItem(SIMPLE_MIND_MAP_CONFIG, dataStr)

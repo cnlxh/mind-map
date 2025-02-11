@@ -277,6 +277,7 @@ export default {
       this.mindMap.keyCommand.addShortcut('Control+s', this.saveToLocal)
       this.$bus.$on('saveToLocal', this.saveToLocal)
     }
+    Vue.prototype.$bus.$on('set_unsave', this.onSetUnsave)
   },
   beforeDestroy() {
     this.$bus.$off('execCommand', this.execCommand)
@@ -298,6 +299,7 @@ export default {
     this.unBindSaveEvent()
     this.mindMap.destroy()
     clearTimeout(this.autoSaveTimer)
+    Vue.prototype.$bus.$off('set_unsave', this.onSetUnsave)
   },
   methods: {
     ...mapMutations(['setFileName', 'setIsUnSave', 'setFilePath']),
@@ -567,6 +569,9 @@ export default {
         },
         customHyperlinkJump(link) {
           utools.shellOpenExternal(link)
+        },
+        getKatexOutputType() {
+          return 'html'
         }
         // createNodePrefixContent: node => {
         //   const el = document.createElement('div')
@@ -875,6 +880,11 @@ export default {
     // 移除节点富文本编辑插件
     removeRichTextPlugin() {
       this.mindMap.removePlugin(RichText)
+    },
+
+    // 监听是否保存
+    onSetUnsave(isUnsave) {
+      this.setIsUnSave(isUnsave)
     },
 
     // 保存到本地文件
