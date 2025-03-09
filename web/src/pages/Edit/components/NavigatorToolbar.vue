@@ -1,5 +1,5 @@
 <template>
-  <div class="navigatorContainer" :class="{ isDark: isDark }">
+  <div class="navigatorContainer customScrollbar" :class="{ isDark: isDark }">
     <div class="item">
       <el-tooltip
         effect="dark"
@@ -91,8 +91,8 @@
 </template>
 
 <script>
-import Scale from './Scale'
-import Fullscreen from './Fullscreen'
+import Scale from './Scale.vue'
+import Fullscreen from './Fullscreen.vue'
 import MouseAction from './MouseAction.vue'
 import { langList } from '@/config'
 import i18n from '@/i18n'
@@ -100,13 +100,8 @@ import { storeLang, getLang } from '@/api'
 import { mapState, mapMutations } from 'vuex'
 import Demonstrate from './Demonstrate.vue'
 
-/**
- * @Author: 王林
- * @Date: 2021-06-24 22:53:10
- * @Desc: 导航器工具栏
- */
+// 导航器工具栏
 export default {
-  name: 'NavigatorToolbar',
   components: {
     Scale,
     Fullscreen,
@@ -257,7 +252,7 @@ export default {
   }
 }
 
-@media screen and (max-width: 590px) {
+@media screen and (max-width: 700px) {
   .navigatorContainer {
     left: 20px;
     overflow-x: auto;

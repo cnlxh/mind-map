@@ -165,13 +165,13 @@
 </template>
 
 <script>
-import NodeImage from './NodeImage'
-import NodeHyperlink from './NodeHyperlink'
-import NodeIcon from './NodeIcon'
-import NodeNote from './NodeNote'
-import NodeTag from './NodeTag'
-import Export from './Export'
-import Import from './Import'
+import NodeImage from './NodeImage.vue'
+import NodeHyperlink from './NodeHyperlink.vue'
+import NodeIcon from './NodeIcon.vue'
+import NodeNote from './NodeNote.vue'
+import NodeTag from './NodeTag.vue'
+import Export from './Export.vue'
+import Import from './Import.vue'
 import { mapState } from 'vuex'
 import { Notification } from 'element-ui'
 import exampleData from 'simple-mind-map/example/exampleData'
@@ -179,14 +179,30 @@ import { getData } from '../../../api'
 import ToolbarNodeBtnList from './ToolbarNodeBtnList.vue'
 import { throttle, isMobile } from 'simple-mind-map/src/utils/index'
 
-/**
- * @Author: 王林
- * @Date: 2021-06-24 22:54:58
- * @Desc: 工具栏
- */
+// 工具栏
 let fileHandle = null
+const defaultBtnList = [
+  'back',
+  'forward',
+  'painter',
+  'siblingNode',
+  'childNode',
+  'deleteNode',
+  'image',
+  'icon',
+  'link',
+  'note',
+  'tag',
+  'summary',
+  'associativeLine',
+  'formula',
+  // 'attachment',
+  'outerFrame',
+  'annotation',
+  'ai'
+]
+
 export default {
-  name: 'Toolbar',
   components: {
     NodeImage,
     NodeHyperlink,
@@ -200,25 +216,6 @@ export default {
   data() {
     return {
       isMobile: isMobile(),
-      list: [
-        'back',
-        'forward',
-        'painter',
-        'siblingNode',
-        'childNode',
-        'deleteNode',
-        'image',
-        'icon',
-        'link',
-        'note',
-        'tag',
-        'summary',
-        'associativeLine',
-        'formula',
-        'attachment',
-        'outerFrame',
-        'annotation'
-      ],
       horizontalList: [],
       verticalList: [],
       showMoreBtn: true,
@@ -238,8 +235,24 @@ export default {
     ...mapState({
       isDark: state => state.localConfig.isDark,
       isHandleLocalFile: state => state.isHandleLocalFile,
-      openNodeRichText: state => state.localConfig.openNodeRichText
-    })
+      openNodeRichText: state => state.localConfig.openNodeRichText,
+      enableAi: state => state.localConfig.enableAi
+    }),
+
+    btnLit() {
+      let res = [...defaultBtnList]
+      if (!this.openNodeRichText) {
+        res = res.filter(item => {
+          return item !== 'formula'
+        })
+      }
+      if (!this.enableAi) {
+        res = res.filter(item => {
+          return item !== 'ai'
+        })
+      }
+      return res
+    }
   },
   watch: {
     isHandleLocalFile(val) {
@@ -247,21 +260,9 @@ export default {
         Notification.closeAll()
       }
     },
-    openNodeRichText: {
-      immediate: true,
-      handler(val) {
-        const index = this.list.findIndex(item => {
-          return item === 'formula'
-        })
-        if (val) {
-          if (index === -1) {
-            this.list.splice(13, 0, 'formula')
-          }
-        } else {
-          if (index !== -1) {
-            this.list.splice(index, 1)
-          }
-        }
+    btnLit: {
+      deep: true,
+      handler() {
         this.computeToolbarShow()
       }
     }
@@ -289,7 +290,7 @@ export default {
     computeToolbarShow() {
       if (!this.$refs.toolbarRef) return
       const windowWidth = window.innerWidth - 40
-      const all = [...this.list]
+      const all = [...this.btnLit]
       let index = 1
       const loopCheck = () => {
         if (index > all.length) return done()

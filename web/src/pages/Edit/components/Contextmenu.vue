@@ -140,6 +140,10 @@
       <div class="item" @click="exec('EXPORT_CUR_NODE_TO_PNG')">
         <span class="name">{{ $t('contextmenu.exportNodeToPng') }}</span>
       </div>
+      <div class="splitLine" v-if="enableAi"></div>
+      <div class="item" @click="aiCreate" v-if="enableAi">
+        <span class="name">{{ $t('contextmenu.aiCreate') }}</span>
+      </div>
     </template>
     <template v-if="type === 'svg'">
       <div class="item" @click="exec('RETURN_CENTER')">
@@ -224,13 +228,8 @@ import { setDataToClipboard, setImgToClipboard, copy } from '@/utils'
 import { numberTypeList, numberLevelList } from '@/config'
 import { v4 as uuid } from 'uuid'
 
-/**
- * @Author: 王林
- * @Date: 2021-06-24 22:53:10
- * @Desc: 右键菜单
- */
+// 右键菜单
 export default {
-  name: 'Contextmenu',
   props: {
     mindMap: {
       type: Object
@@ -249,7 +248,8 @@ export default {
       enableCopyToClipboardApi: navigator.clipboard,
       numberType: '',
       numberLevel: '',
-      subItemsShowLeft: false
+      subItemsShowLeft: false,
+      isNodeMousedown: false
     }
   },
   computed: {
@@ -258,7 +258,8 @@ export default {
       isDark: state => state.localConfig.isDark,
       supportNumbers: state => state.supportNumbers,
       supportCheckbox: state => state.supportCheckbox,
-      isUnSave: state => state.isUnSave
+      isUnSave: state => state.isUnSave,
+      enableAi: state => state.localConfig.enableAi
     }),
     expandList() {
       return [
@@ -349,6 +350,7 @@ export default {
     this.$bus.$on('svg_mousedown', this.onMousedown)
     this.$bus.$on('mouseup', this.onMouseup)
     this.$bus.$on('translate', this.hide)
+    this.$bus.$on('node_mousedown', this.onNodeMousedown)
   },
   beforeDestroy() {
     this.$bus.$off('node_contextmenu', this.show)
@@ -358,6 +360,7 @@ export default {
     this.$bus.$off('svg_mousedown', this.onMousedown)
     this.$bus.$off('mouseup', this.onMouseup)
     this.$bus.$off('translate', this.hide)
+    this.$bus.$off('node_mousedown', this.onNodeMousedown)
   },
   methods: {
     ...mapMutations([
@@ -397,6 +400,10 @@ export default {
       })
     },
 
+    onNodeMousedown() {
+      this.isNodeMousedown = true
+    },
+
     // 鼠标按下事件
     onMousedown(e) {
       if (e.which !== 3) {
@@ -410,6 +417,10 @@ export default {
     // 鼠标松开事件
     onMouseup(e) {
       if (!this.isMousedown) {
+        return
+      }
+      if (this.isNodeMousedown) {
+        this.isNodeMousedown = false
         return
       }
       this.isMousedown = false
@@ -591,6 +602,12 @@ export default {
         console.log(error)
         this.$message.error(this.$t('contextmenu.copyFail'))
       }
+    },
+
+    // AI续写
+    aiCreate() {
+      this.$bus.$emit('ai_create_part', this.node)
+      this.hide()
     }
   }
 }
