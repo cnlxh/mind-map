@@ -19,7 +19,7 @@ export const getData = () => {
   if (vuexStore.state.isHandleLocalFile) {
     return Vue.prototype.getCurrentData()
   }
-  let store = localStorage.getItem(SIMPLE_MIND_MAP_DATA)
+  let store = utools.dbStorage.getItem(SIMPLE_MIND_MAP_DATA)
   if (store === null) {
     return simpleDeepClone(exampleData)
   } else {
@@ -64,7 +64,7 @@ export const storeData = data => {
       return
     }
     let dataStr = JSON.stringify(originData)
-    localStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
+    utools.dbStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
   } catch (error) {
     console.log(error)
   }
@@ -79,7 +79,7 @@ export const storeConfig = config => {
       }
       if (!config.config) return
       let dataStr = JSON.stringify(config.config)
-      localStorage.setItem(SIMPLE_MIND_MAP_CONFIG, dataStr)
+      utools.dbStorage.setItem(SIMPLE_MIND_MAP_CONFIG, dataStr)
       return
     }
     let originData = null
@@ -102,14 +102,14 @@ export const storeConfig = config => {
       return
     }
     let dataStr = JSON.stringify(originData)
-    localStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
+    utools.dbStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
   } catch (error) {
     console.log(error)
   }
 }
 
 export const getConfig = () => {
-  let config = localStorage.getItem(SIMPLE_MIND_MAP_CONFIG)
+  let config = utools.dbStorage.getItem(SIMPLE_MIND_MAP_CONFIG)
   if (config === null) {
     return {}
   } else {
@@ -128,7 +128,7 @@ export const storeLang = lang => {
     window.takeOverAppMethods.saveLanguage(lang)
     return
   }
-  localStorage.setItem(SIMPLE_MIND_MAP_LANG, lang)
+  utools.dbStorage.setItem(SIMPLE_MIND_MAP_LANG, lang)
 }
 
 // 获取存储的语言
@@ -136,7 +136,7 @@ export const getLang = () => {
   if (window.takeOverApp) {
     return window.takeOverAppMethods.getLanguage() || 'zh'
   }
-  let lang = localStorage.getItem(SIMPLE_MIND_MAP_LANG)
+  let lang = utools.dbStorage.getItem(SIMPLE_MIND_MAP_LANG)
   if (lang) {
     return lang
   }
@@ -154,7 +154,7 @@ export const storeLocalConfig = config => {
   if (window.takeOverApp) {
     return window.takeOverAppMethods.saveLocalConfig(config)
   }
-  localStorage.setItem(SIMPLE_MIND_MAP_LOCAL_CONFIG, JSON.stringify(config))
+  utools.dbStorage.setItem(SIMPLE_MIND_MAP_LOCAL_CONFIG, JSON.stringify(config))
 }
 
 /**
@@ -167,7 +167,7 @@ export const getLocalConfig = () => {
   if (window.takeOverApp) {
     return window.takeOverAppMethods.getLocalConfig()
   }
-  let config = localStorage.getItem(SIMPLE_MIND_MAP_LOCAL_CONFIG)
+  let config = utools.dbStorage.getItem(SIMPLE_MIND_MAP_LOCAL_CONFIG)
   if (config) {
     return JSON.parse(config)
   }

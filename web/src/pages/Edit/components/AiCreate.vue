@@ -1,61 +1,10 @@
 <template>
   <div>
-    <!-- 客户端连接失败提示弹窗 -->
-    <el-dialog
-      class="clientTipDialog"
-      :title="$t('ai.connectFailedTitle')"
-      :visible.sync="clientTipDialogVisible"
-      width="400px"
-      append-to-body
-    >
-      <div class="tipBox">
-        <p>{{ $t('ai.connectFailedTip') }}</p>
-        <p>
-          {{ $t('ai.connectFailedCheckTip1')
-          }}<a
-            @click.stop.prevent="
-              openUrl(
-                'https://pan.baidu.com/s/1huasEbKsGNH2Af68dvWiOg?pwd=3bp3'
-              )
-            "
-            >{{ $t('ai.baiduNetdisk') }}</a
-          >、<a
-            @click.stop.prevent="
-              openUrl('https://github.com/wanglin2/mind-map/releases')
-            "
-            >Github</a
-          >
-        </p>
-        <p>{{ $t('ai.connectFailedCheckTip2') }}</p>
-        <P>{{ $t('ai.connectFailedCheckTip3') }}</P>
-        <p>
-          {{ $t('ai.connectFailedCheckTip4')
-          }}<el-button size="small" @click="testConnect">{{
-            $t('ai.connectionDetection')
-          }}</el-button>
-        </p>
-      </div>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="clientTipDialogVisible = false">{{
-          $t('ai.close')
-        }}</el-button>
-      </div>
-    </el-dialog>
     <!-- ai内容输入弹窗 -->
-    <el-dialog
-      class="createDialog"
-      :title="$t('ai.createMindMapTitle')"
-      :visible.sync="createDialogVisible"
-      width="450px"
-      append-to-body
-    >
+    <el-dialog class="createDialog" :title="$t('ai.createMindMapTitle')" :visible.sync="createDialogVisible"
+      width="450px" append-to-body>
       <div class="inputBox">
-        <el-input
-          type="textarea"
-          :rows="5"
-          :placeholder="$t('ai.createTip')"
-          v-model="aiInput"
-        >
+        <el-input type="textarea" :rows="5" :placeholder="$t('ai.createTip')" v-model="aiInput">
         </el-input>
         <div class="tip warning">
           {{ $t('ai.importantTip') }}
@@ -63,28 +12,24 @@
         <div class="tip">
           {{ $t('ai.wantModifyAiConfigTip')
           }}<el-button size="small" @click="showAiConfigDialog">{{
-            $t('ai.modifyAIConfiguration')
-          }}</el-button>
+      $t('ai.modifyAIConfiguration')
+    }}</el-button>
         </div>
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="closeAiCreateDialog">{{
-          $t('ai.cancel')
-        }}</el-button>
+      $t('ai.cancel')
+    }}</el-button>
         <el-button type="primary" @click="doAiCreate">{{
-          $t('ai.confirm')
-        }}</el-button>
+      $t('ai.confirm')
+    }}</el-button>
       </div>
     </el-dialog>
     <!-- ai生成中添加一个透明层，防止期间用户进行操作 -->
-    <div
-      class="aiCreatingMask"
-      ref="aiCreatingMaskRef"
-      v-show="aiCreatingMaskVisible"
-    >
+    <div class="aiCreatingMask" ref="aiCreatingMaskRef" v-show="aiCreatingMaskVisible">
       <el-button type="warning" class="btn" @click="stopCreate">{{
-        $t('ai.stopGenerating')
-      }}</el-button>
+      $t('ai.stopGenerating')
+    }}</el-button>
     </div>
     <AiConfigDialog v-model="aiConfigDialogVisible"></AiConfigDialog>
   </div>
@@ -121,7 +66,6 @@ export default {
       uidMap: {},
       latestUid: '',
 
-      clientTipDialogVisible: false,
       createDialogVisible: false,
       aiInput: '',
       aiCreatingMaskVisible: false,
@@ -157,21 +101,6 @@ export default {
       this.aiConfigDialogVisible = true
     },
 
-    // 客户端连接检测
-    async testConnect() {
-      try {
-        await fetch(`http://localhost:${this.aiConfig.port}/ai/test`, {
-          method: 'GET'
-        })
-        this.$message.success(this.$t('ai.connectSuccessful'))
-        this.clientTipDialogVisible = false
-        this.createDialogVisible = true
-      } catch (error) {
-        console.log(error)
-        this.$message.error(this.$t('ai.connectFailed'))
-      }
-    },
-
     // 检测ai是否可用
     async aiTest() {
       // 检查配置
@@ -185,20 +114,6 @@ export default {
       ) {
         this.showAiConfigDialog()
         throw new Error(this.$t('ai.configurationMissing'))
-      }
-      // 检查连接
-      let isConnect = false
-      try {
-        await fetch(`http://localhost:${this.aiConfig.port}/ai/test`, {
-          method: 'GET'
-        })
-        isConnect = true
-      } catch (error) {
-        console.log(error)
-        this.clientTipDialogVisible = true
-      }
-      if (!isConnect) {
-        throw new Error(this.$t('ai.connectFailed'))
       }
     },
 
@@ -504,9 +419,9 @@ export default {
     // AI对话
     async aiChat(
       messageList = [],
-      progress = () => {},
-      end = () => {},
-      err = () => {}
+      progress = () => { },
+      end = () => { },
+      err = () => { }
     ) {
       try {
         await this.aiTest()

@@ -1,36 +1,20 @@
 <template>
-  <div
-    class="editContainer"
-    :style="{ top: IS_ELECTRON ? '40px' : 0 }"
-    @dragenter.stop.prevent="onDragenter"
-    @dragleave.stop.prevent
-    @dragover.stop.prevent
-    @drop.stop.prevent
-  >
-    <div
-      class="mindMapContainer"
-      id="mindMapContainer"
-      ref="mindMapContainer"
-    ></div>
+  <div class="editContainer" :style="{ top: IS_ELECTRON ? '40px' : 0 }" @dragenter.stop.prevent="onDragenter"
+    @dragleave.stop.prevent @dragover.stop.prevent @drop.stop.prevent>
+    <div class="mindMapContainer" id="mindMapContainer" ref="mindMapContainer"></div>
     <Count :mindMap="mindMap" v-if="!isZenMode"></Count>
     <Navigator v-if="mindMap" :mindMap="mindMap"></Navigator>
     <NavigatorToolbar :mindMap="mindMap" v-if="!isZenMode"></NavigatorToolbar>
     <OutlineSidebar :mindMap="mindMap"></OutlineSidebar>
     <Style v-if="!isZenMode"></Style>
     <BaseStyle :data="mindMapData" :mindMap="mindMap"></BaseStyle>
-    <AssociativeLineStyle
-      v-if="mindMap"
-      :mindMap="mindMap"
-    ></AssociativeLineStyle>
+    <AssociativeLineStyle v-if="mindMap" :mindMap="mindMap"></AssociativeLineStyle>
     <Theme v-if="mindMap" :data="mindMapData" :mindMap="mindMap"></Theme>
     <Structure :mindMap="mindMap"></Structure>
     <ShortcutKey></ShortcutKey>
     <Contextmenu v-if="mindMap" :mindMap="mindMap"></Contextmenu>
     <RichTextToolbar v-if="mindMap" :mindMap="mindMap"></RichTextToolbar>
-    <NodeNoteContentShow
-      v-if="mindMap"
-      :mindMap="mindMap"
-    ></NodeNoteContentShow>
+    <NodeNoteContentShow v-if="mindMap" :mindMap="mindMap"></NodeNoteContentShow>
     <NodeAttachment v-if="mindMap" :mindMap="mindMap"></NodeAttachment>
     <NodeImgPreview v-if="mindMap" :mindMap="mindMap"></NodeImgPreview>
     <SidebarTrigger v-if="!isZenMode"></SidebarTrigger>
@@ -44,19 +28,11 @@
     <NodeOuterFrame v-if="mindMap" :mindMap="mindMap"></NodeOuterFrame>
     <NodeTagStyle v-if="mindMap" :mindMap="mindMap"></NodeTagStyle>
     <Setting :data="mindMapData" :mindMap="mindMap"></Setting>
-    <NodeImgPlacementToolbar
-      v-if="mindMap"
-      :mindMap="mindMap"
-    ></NodeImgPlacementToolbar>
+    <NodeImgPlacementToolbar v-if="mindMap" :mindMap="mindMap"></NodeImgPlacementToolbar>
     <AiCreate v-if="mindMap && enableAi" :mindMap="mindMap"></AiCreate>
     <AiChat v-if="enableAi"></AiChat>
-    <div
-      class="dragMask"
-      v-if="showDragMask"
-      @dragleave.stop.prevent="onDragleave"
-      @dragover.stop.prevent
-      @drop.stop.prevent="onDrop"
-    >
+    <div class="dragMask" v-if="showDragMask" @dragleave.stop.prevent="onDragleave" @dragover.stop.prevent
+      @drop.stop.prevent="onDrop">
       <div class="dragTip">{{ $t('edit.dragTip') }}</div>
     </div>
   </div>
@@ -119,12 +95,7 @@ import NodeImgPreview from './NodeImgPreview.vue'
 import SidebarTrigger from './SidebarTrigger.vue'
 import { mapState, mapMutations } from 'vuex'
 import icon from '@/config/icon'
-import CustomNodeContent from './CustomNodeContent.vue'
-import Color from './Color.vue'
 import Vue from 'vue'
-import router from '../../../router'
-import store from '../../../store'
-import i18n from '../../../i18n'
 import Search from './Search.vue'
 import NodeIconSidebar from './NodeIconSidebar.vue'
 import NodeIconToolbar from './NodeIconToolbar.vue'
@@ -238,7 +209,8 @@ export default {
       isDragOutlineTreeNode: state => state.isDragOutlineTreeNode,
       currentFolder: state => state.currentFolder,
       isDark: state => state.localConfig.isDark,
-      enableAi: state => state.localConfig.enableAi
+      enableAi: state => state.localConfig.enableAi,
+      isVIP: state => state.isVIP
     })
   },
   watch: {
@@ -273,7 +245,6 @@ export default {
   },
   async mounted() {
     showLoading()
-    // this.showNewFeatureInfo()
     await this.getData()
     this.init()
     this.$bus.$on('execCommand', this.execCommand)
@@ -588,157 +559,46 @@ export default {
         getKatexOutputType() {
           return 'html'
         }
-        // createNodePrefixContent: node => {
-        //   const el = document.createElement('div')
-        //   el.style.width = '50px'
-        //   el.style.height = '50px'
-        //   el.style.background = 'red'
-        //   return {
-        //     el,
-        //     width: 50,
-        //     height: 50
-        //   }
-        // },
-        // createNodePostfixContent: node => {
-        //   const domparser = new DOMParser()
-        //   const doc = domparser.parseFromString(
-        //     '<b style="background-color: rgb(214, 239, 214);">白日依山尽</b>',
-        //     'text/html'
-        //   )
-        //   const el = doc.querySelector('b')
-        //   return {
-        //     el,
-        //     width: 50,
-        //     height: 50
-        //   }
-        // },
-        // addContentToHeader: () => {
-        //   const el = document.createElement('div')
-        //   el.className = 'footer'
-        //   el.innerHTML = '理想青年实验室'
-        //   const cssText = `
-        //     .header {
-        //       width: 100%;
-        //       height: 50px;
-        //       background: #f5f5f5;
-        //       display: flex;
-        //       justify-content: center;
-        //       align-items: center
-        //     }
-        //   `
-        //   return {
-        //     el,
-        //     cssText,
-        //     height: 50
-        //   }
-        // },
-        // beforeShortcutRun: (key, activeNodeList) => {
-        //   console.log(key, activeNodeList)
-        //   // 阻止删除快捷键行为
-        //   if (key === 'Backspace') {
-        //     return true
-        //   }
-        // }
-        // handleNodePasteImg: img => {
-        //   console.log(img)
-        //   return new Promise(resolve => {
-        //     setTimeout(() => {
-        //       resolve({
-        //         url: require('../../../assets/img/themes/autumn.jpg'),
-        //         size: {
-        //           width: 100,
-        //           height: 100
-        //         }
-        //       })
-        //     }, 200)
-        //   })
-        // }
-        // isUseCustomNodeContent: true,
-        // 示例1：组件里用到了router、store、i18n等实例化vue组件时需要用到的东西
-        // customCreateNodeContent: (node) => {
-        //   let el = document.createElement('div')
-        //   let Comp = Vue.extend(Color)
-        //   let comp = new Comp({
-        //     router,
-        //     store,
-        //     i18n
-        //   })
-        //   comp.$mount(el)
-        //   return comp.$el
-        // },
-        // 示例2：组件里没有用到示例1的东西
-        // customCreateNodeContent: (node) => {
-        //   let el = document.createElement('div')
-        //   let Comp = Vue.extend(CustomNodeContent)
-        //   let comp = new Comp({
-        //     propsData: {
-        //       html: node.nodeData.data.text
-        //     }
-        //   })
-        //   comp.$mount(el)
-        //   return comp.$el
-        // },
-        // 示例3：普通元素
-        // customCreateNodeContent: node => {
-        //   let el = document.createElement('div')
-        //   el.style.cssText = `
-        //     width: 203px;
-        //     height: 78px;
-        //     opacity: 0.8;
-        //     background-image: linear-gradient(0deg, rgba(53,130,172,0.06) 0%, rgba(24,75,116,0.06) 100%);
-        //     box-shadow: inset 0 1px 15px 0 rgba(119,196,255,0.40);
-        //     border-radius: 2px;
-        //     display: flex;
-        //     justify-content: center;
-        //     align-items: center;
-        //   `
-        //   el.innerHTML = `
-        //     ${node.nodeData.data.text}
-        //     <img crossOrigin="anonymous" src="/img/cactus.jpg" />
-        //   `
-        //   return el
-        // }
       })
       this.lastViewData = simpleDeepClone(this.mindMap.view.getTransformData())
       this.loadPlugins()
       this.mindMap.keyCommand.addShortcut('Control+s', () => {
         this.manualSave()
       })
-      // 转发事件
-      ;[
-        'node_active',
-        'data_change',
-        'view_data_change',
-        'back_forward',
-        'node_contextmenu',
-        'node_click',
-        'draw_click',
-        'expand_btn_click',
-        'svg_mousedown',
-        'mouseup',
-        'mode_change',
-        'node_tree_render_end',
-        'rich_text_selection_change',
-        'transforming-dom-to-images',
-        'generalization_node_contextmenu',
-        'painter_start',
-        'painter_end',
-        'scrollbar_change',
-        'scale',
-        'translate',
-        'node_attachmentClick',
-        'node_attachmentContextmenu',
-        'demonstrate_jump',
-        'exit_demonstrate',
-        'node_note_dblclick',
-        'node_mousedown'
-      ].forEach(event => {
-        this.mindMap.on(event, (...args) => {
-          this.$bus.$emit(event, ...args)
+        // 转发事件
+        ;[
+          'node_active',
+          'data_change',
+          'view_data_change',
+          'back_forward',
+          'node_contextmenu',
+          'node_click',
+          'draw_click',
+          'expand_btn_click',
+          'svg_mousedown',
+          'mouseup',
+          'mode_change',
+          'node_tree_render_end',
+          'rich_text_selection_change',
+          'transforming-dom-to-images',
+          'generalization_node_contextmenu',
+          'painter_start',
+          'painter_end',
+          'scrollbar_change',
+          'scale',
+          'translate',
+          'node_attachmentClick',
+          'node_attachmentContextmenu',
+          'demonstrate_jump',
+          'exit_demonstrate',
+          'node_note_dblclick',
+          'node_mousedown'
+        ].forEach(event => {
+          this.mindMap.on(event, (...args) => {
+            this.$bus.$emit(event, ...args)
+          })
         })
-      })
       this.bindSaveEvent()
-      this.testDynamicCreateNodes()
       // 如果应用被接管，那么抛出事件传递思维导图实例
       if (window.takeOverApp) {
         this.$bus.$emit('app_inited', this.mindMap)
@@ -753,63 +613,47 @@ export default {
         const fullData = this.mindMap.getData(true)
         return { ...fullData, config: this.mindMapData.config }
       }
-      // 协同测试
-      this.cooperateTest()
-      // 销毁
-      // setTimeout(() => {
-      //   console.log('销毁')
-      //   this.mindMap.destroy()
-      // }, 10000)
-      // 测试
-      // setTimeout(() => {
-      //   console.log(this.mindMap.renderer.root.getRect())
-      //   console.log(this.mindMap.renderer.root.getRectInSvg())
-      // }, 5000);
-      // setTimeout(() => {
-      //   this.mindMap.renderer.renderTree.data.fillColor = 'red'
-      //   this.mindMap.render()
-      //   this.mindMap.reRender()
-      //   this.mindMap.render()
-      // }, 5000)
     },
 
     // 加载相关插件
     loadPlugins() {
       if (this.openNodeRichText) this.addRichTextPlugin()
       if (this.isShowScrollbar) this.addScrollbarPlugin()
-      if (typeof HandDrawnLikeStyle !== 'undefined') {
-        this.$store.commit('setSupportHandDrawnLikeStyle', true)
-        if (this.isUseHandDrawnLikeStyle) this.addHandDrawnLikeStylePlugin()
-      }
-      if (typeof Momentum !== 'undefined') {
-        this.$store.commit('setSupportMomentum', true)
-        if (this.isUseMomentum) this.addMomentumPlugin()
-      }
-      if (typeof Notation !== 'undefined') {
-        this.mindMap.addPlugin(Notation)
-        this.$store.commit('setSupportMark', true)
-      }
-      if (typeof Numbers !== 'undefined') {
-        this.mindMap.addPlugin(Numbers)
-        this.$store.commit('setSupportNumbers', true)
-      }
-      if (typeof Freemind !== 'undefined') {
-        this.mindMap.addPlugin(Freemind)
-        this.$store.commit('setSupportFreemind', true)
-        Vue.prototype.Freemind = Freemind
-      }
-      if (typeof Excel !== 'undefined') {
-        this.mindMap.addPlugin(Excel)
-        this.$store.commit('setSupportExcel', true)
-        Vue.prototype.Excel = Excel
-      }
-      if (typeof Checkbox !== 'undefined') {
-        this.mindMap.addPlugin(Checkbox)
-        this.$store.commit('setSupportCheckbox', true)
-      }
-      if (typeof LineFlow !== 'undefined') {
-        this.mindMap.addPlugin(LineFlow)
-        this.$store.commit('setSupportLineFlow', true)
+      if (this.isVIP) {
+        if (typeof HandDrawnLikeStyle !== 'undefined') {
+          this.$store.commit('setSupportHandDrawnLikeStyle', true)
+          if (this.isUseHandDrawnLikeStyle) this.addHandDrawnLikeStylePlugin()
+        }
+        if (typeof Momentum !== 'undefined') {
+          this.$store.commit('setSupportMomentum', true)
+          if (this.isUseMomentum) this.addMomentumPlugin()
+        }
+        if (typeof Notation !== 'undefined') {
+          this.mindMap.addPlugin(Notation)
+          this.$store.commit('setSupportMark', true)
+        }
+        if (typeof Numbers !== 'undefined') {
+          this.mindMap.addPlugin(Numbers)
+          this.$store.commit('setSupportNumbers', true)
+        }
+        if (typeof Freemind !== 'undefined') {
+          this.mindMap.addPlugin(Freemind)
+          this.$store.commit('setSupportFreemind', true)
+          Vue.prototype.Freemind = Freemind
+        }
+        if (typeof Excel !== 'undefined') {
+          this.mindMap.addPlugin(Excel)
+          this.$store.commit('setSupportExcel', true)
+          Vue.prototype.Excel = Excel
+        }
+        if (typeof Checkbox !== 'undefined') {
+          this.mindMap.addPlugin(Checkbox)
+          this.$store.commit('setSupportCheckbox', true)
+        }
+        if (typeof LineFlow !== 'undefined') {
+          this.mindMap.addPlugin(LineFlow)
+          this.$store.commit('setSupportLineFlow', true)
+        }
       }
     },
 
@@ -879,21 +723,6 @@ export default {
     // 修改导出内边距
     onPaddingChange(data) {
       this.mindMap.updateConfig(data)
-    },
-
-    // 显示新特性提示
-    showNewFeatureInfo() {
-      let showed = localStorage.getItem('SIMPLE_MIND_MAP_NEW_FEATURE_TIP_1')
-      if (!showed) {
-        this.$notify.info({
-          title: this.$t('edit.newFeatureNoticeTitle'),
-          message: this.$t('edit.newFeatureNoticeMessage'),
-          duration: 0,
-          onClose: () => {
-            localStorage.setItem('SIMPLE_MIND_MAP_NEW_FEATURE_TIP_1', true)
-          }
-        })
-      }
     },
 
     // 加载节点富文本编辑插件
@@ -1000,134 +829,6 @@ export default {
         this.mindMap.removePlugin(Momentum)
       } catch (error) {
         console.log('动量效果插件不存在')
-      }
-    },
-
-    // 测试动态插入节点
-    testDynamicCreateNodes() {
-      // return
-      setTimeout(() => {
-        // 动态给指定节点添加子节点
-        // this.mindMap.execCommand(
-        //   'INSERT_CHILD_NODE',
-        //   false,
-        //   null,
-        //   {
-        //     text: '自定义内容'
-        //   },
-        //   [
-        //     {
-        //       data: {
-        //         text: '自定义子节点'
-        //       }
-        //     }
-        //   ]
-        // )
-        // 动态给指定节点添加同级节点
-        // this.mindMap.execCommand(
-        //   'INSERT_NODE',
-        //   false,
-        //   null,
-        //   {
-        //     text: '自定义内容'
-        //   },
-        //   [
-        //     {
-        //       data: {
-        //         text: '自定义同级节点'
-        //       },
-        //       children: [
-        //         {
-        //           data: {
-        //             text: '自定义同级节点2'
-        //           },
-        //           children: []
-        //         }
-        //       ]
-        //     }
-        //   ]
-        // )
-        // 动态插入多个子节点
-        // this.mindMap.execCommand('INSERT_MULTI_CHILD_NODE', null, [
-        //   {
-        //     data: {
-        //       text: '自定义节点1'
-        //     },
-        //     children: [
-        //       {
-        //         data: {
-        //           text: '自定义节点1-1'
-        //         },
-        //         children: []
-        //       }
-        //     ]
-        //   },
-        //   {
-        //     data: {
-        //       text: '自定义节点2'
-        //     },
-        //     children: [
-        //       {
-        //         data: {
-        //           text: '自定义节点2-1'
-        //         },
-        //         children: []
-        //       }
-        //     ]
-        //   }
-        // ])
-        // 动态插入多个同级节点
-        // this.mindMap.execCommand('INSERT_MULTI_NODE', null, [
-        //   {
-        //     data: {
-        //       text: '自定义节点1'
-        //     },
-        //     children: [
-        //       {
-        //         data: {
-        //           text: '自定义节点1-1'
-        //         },
-        //         children: []
-        //       }
-        //     ]
-        //   },
-        //   {
-        //     data: {
-        //       text: '自定义节点2'
-        //     },
-        //     children: [
-        //       {
-        //         data: {
-        //           text: '自定义节点2-1'
-        //         },
-        //         children: []
-        //       }
-        //     ]
-        //   }
-        // ])
-        // 动态删除指定节点
-        // this.mindMap.execCommand('REMOVE_NODE', this.mindMap.renderer.root.children[0])
-      }, 5000)
-    },
-
-    // 协同测试
-    cooperateTest() {
-      if (this.mindMap.cooperate && this.$route.query.userName) {
-        this.mindMap.cooperate.setProvider(null, {
-          roomName: 'demo-room',
-          signalingList: ['ws://localhost:4444']
-        })
-        this.mindMap.cooperate.setUserInfo({
-          id: Math.random(),
-          name: this.$route.query.userName,
-          color: ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399'][
-            Math.floor(Math.random() * 5)
-          ],
-          avatar:
-            Math.random() > 0.5
-              ? 'https://img0.baidu.com/it/u=4270674549,2416627993&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1696006800&t=4d32871d14a7224a4591d0c3c7a97311'
-              : ''
-        })
       }
     },
 

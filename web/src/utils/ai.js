@@ -72,19 +72,17 @@ class Ai {
   }
 
   async postMsg(data) {
+    const { api, headers } = this.baseData
     this.controller = new AbortController()
-    const res = await fetch(`http://localhost:${this.options.port}/ai/chat`, {
+    const res = await fetch(api, {
       signal: this.controller.signal,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        ...headers
       },
       body: JSON.stringify({
-        ...this.baseData,
-        data: {
-          ...this.baseData.data,
-          ...data
-        }
+        ...this.baseData.data,
+        ...data
       })
     })
     if (res.status && res.status !== 200) {
