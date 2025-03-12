@@ -4,18 +4,23 @@ import Vue from 'vue'
 import vuexStore from '@/store'
 
 const SIMPLE_MIND_MAP_DATA = 'SIMPLE_MIND_MAP_DATA'
+const SIMPLE_MIND_MAP_CONFIG = 'SIMPLE_MIND_MAP_CONFIG'
 const SIMPLE_MIND_MAP_LANG = 'SIMPLE_MIND_MAP_LANG'
 const SIMPLE_MIND_MAP_LOCAL_CONFIG = 'SIMPLE_MIND_MAP_LOCAL_CONFIG'
-const SIMPLE_MIND_MAP_CONFIG = 'SIMPLE_MIND_MAP_CONFIG'
 
 let mindMapData = null
 
 // 获取缓存的思维导图数据
 export const getData = () => {
+  if (window.IS_ELECTRON) {
+    return
+  }
+  // 接管模式
   if (window.takeOverApp) {
     mindMapData = window.takeOverAppMethods.getMindMapData()
     return mindMapData
   }
+  // 操作本地文件模式
   if (vuexStore.state.isHandleLocalFile) {
     return Vue.prototype.getCurrentData()
   }
@@ -27,11 +32,6 @@ export const getData = () => {
       let parsedData = JSON.parse(store)
       if (window.IS_ELECTRON) {
         return simpleDeepClone(exampleData)
-        let { root, ...rest } = parsedData
-        return {
-          ...rest,
-          root: simpleDeepClone(exampleData).root
-        }
       } else {
         return parsedData
       }
@@ -45,6 +45,7 @@ export const getData = () => {
 export const storeData = data => {
   try {
     if (window.IS_ELECTRON) {
+      Vue.prototype.$bus.$emit('storeData', data)
       return
     }
     let originData = null
@@ -53,7 +54,13 @@ export const storeData = data => {
     } else {
       originData = getData()
     }
-    originData.root = data
+    if (!originData) {
+      originData = {}
+    }
+    originData = {
+      ...originData,
+      ...data
+    }
     if (window.takeOverApp) {
       mindMapData = originData
       window.takeOverAppMethods.saveMindMapData(originData)
@@ -63,62 +70,35 @@ export const storeData = data => {
     if (vuexStore.state.isHandleLocalFile) {
       return
     }
-    let dataStr = JSON.stringify(originData)
-    utools.dbStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
+    utools.dbStorage.setItem(SIMPLE_MIND_MAP_DATA, JSON.stringify(originData))
   } catch (error) {
     console.log(error)
   }
+}
+
+// 获取思维导图配置数据
+export const getConfig = () => {
+  if (window.takeOverApp) {
+    window.takeOverAppMethods.getMindMapConfig()
+    return
+  }
+  let config = utools.dbStorage.getItem(SIMPLE_MIND_MAP_CONFIG)
+  if (config) {
+    return JSON.parse(config)
+  }
+  return null
 }
 
 // 存储思维导图配置数据
 export const storeConfig = config => {
   try {
-    if (window.IS_ELECTRON) {
-      if (config.theme || config.layout) {
-        Vue.prototype.$bus.$emit('set_unsave', true)
-      }
-      if (!config.config) return
-      let dataStr = JSON.stringify(config.config)
-      utools.dbStorage.setItem(SIMPLE_MIND_MAP_CONFIG, dataStr)
-      return
-    }
-    let originData = null
     if (window.takeOverApp) {
-      originData = mindMapData
-    } else {
-      originData = getData()
-    }
-    originData = {
-      ...originData,
-      ...config
-    }
-    if (window.takeOverApp) {
-      mindMapData = originData
-      window.takeOverAppMethods.saveMindMapData(originData)
+      window.takeOverAppMethods.saveMindMapConfig(config)
       return
     }
-    Vue.prototype.$bus.$emit('write_local_file', originData)
-    if (vuexStore.state.isHandleLocalFile) {
-      return
-    }
-    let dataStr = JSON.stringify(originData)
-    utools.dbStorage.setItem(SIMPLE_MIND_MAP_DATA, dataStr)
+    utools.dbStorage.setItem(SIMPLE_MIND_MAP_CONFIG, JSON.stringify(config))
   } catch (error) {
     console.log(error)
-  }
-}
-
-export const getConfig = () => {
-  let config = utools.dbStorage.getItem(SIMPLE_MIND_MAP_CONFIG)
-  if (config === null) {
-    return {}
-  } else {
-    try {
-      let parsedData = JSON.parse(config)
-      return parsedData
-    } catch (error) {
-      return {}
-    }
   }
 }
 
@@ -144,12 +124,7 @@ export const getLang = () => {
   return 'zh'
 }
 
-/**
- * javascript comment
- * @Author: 王林25
- * @Date: 2022-11-14 18:57:31
- * @Desc: 存储本地配置
- */
+// 存储本地配置
 export const storeLocalConfig = config => {
   if (window.takeOverApp) {
     return window.takeOverAppMethods.saveLocalConfig(config)
@@ -157,12 +132,7 @@ export const storeLocalConfig = config => {
   utools.dbStorage.setItem(SIMPLE_MIND_MAP_LOCAL_CONFIG, JSON.stringify(config))
 }
 
-/**
- * javascript comment
- * @Author: 王林25
- * @Date: 2022-11-14 18:57:37
- * @Desc: 获取本地配置
- */
+// 获取本地配置
 export const getLocalConfig = () => {
   if (window.takeOverApp) {
     return window.takeOverAppMethods.getLocalConfig()

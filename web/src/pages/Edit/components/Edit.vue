@@ -1,20 +1,40 @@
 <template>
-  <div class="editContainer" :style="{ top: IS_ELECTRON ? '40px' : 0 }" @dragenter.stop.prevent="onDragenter"
-    @dragleave.stop.prevent @dragover.stop.prevent @drop.stop.prevent>
-    <div class="mindMapContainer" id="mindMapContainer" ref="mindMapContainer"></div>
+  <div
+    class="editContainer"
+    :style="{ top: IS_ELECTRON ? '40px' : 0 }"
+    @dragenter.stop.prevent="onDragenter"
+    @dragleave.stop.prevent
+    @dragover.stop.prevent
+    @drop.stop.prevent
+  >
+    <div
+      class="mindMapContainer"
+      id="mindMapContainer"
+      ref="mindMapContainer"
+    ></div>
     <Count :mindMap="mindMap" v-if="!isZenMode"></Count>
     <Navigator v-if="mindMap" :mindMap="mindMap"></Navigator>
     <NavigatorToolbar :mindMap="mindMap" v-if="!isZenMode"></NavigatorToolbar>
     <OutlineSidebar :mindMap="mindMap"></OutlineSidebar>
     <Style v-if="!isZenMode"></Style>
-    <BaseStyle :data="mindMapData" :mindMap="mindMap"></BaseStyle>
-    <AssociativeLineStyle v-if="mindMap" :mindMap="mindMap"></AssociativeLineStyle>
+    <BaseStyle
+      :data="mindMapData"
+      :configData="mindMapConfig"
+      :mindMap="mindMap"
+    ></BaseStyle>
+    <AssociativeLineStyle
+      v-if="mindMap"
+      :mindMap="mindMap"
+    ></AssociativeLineStyle>
     <Theme v-if="mindMap" :data="mindMapData" :mindMap="mindMap"></Theme>
     <Structure :mindMap="mindMap"></Structure>
     <ShortcutKey></ShortcutKey>
     <Contextmenu v-if="mindMap" :mindMap="mindMap"></Contextmenu>
     <RichTextToolbar v-if="mindMap" :mindMap="mindMap"></RichTextToolbar>
-    <NodeNoteContentShow v-if="mindMap" :mindMap="mindMap"></NodeNoteContentShow>
+    <NodeNoteContentShow
+      v-if="mindMap"
+      :mindMap="mindMap"
+    ></NodeNoteContentShow>
     <NodeAttachment v-if="mindMap" :mindMap="mindMap"></NodeAttachment>
     <NodeImgPreview v-if="mindMap" :mindMap="mindMap"></NodeImgPreview>
     <SidebarTrigger v-if="!isZenMode"></SidebarTrigger>
@@ -27,12 +47,20 @@
     <SourceCodeEdit v-if="mindMap" :mindMap="mindMap"></SourceCodeEdit>
     <NodeOuterFrame v-if="mindMap" :mindMap="mindMap"></NodeOuterFrame>
     <NodeTagStyle v-if="mindMap" :mindMap="mindMap"></NodeTagStyle>
-    <Setting :data="mindMapData" :mindMap="mindMap"></Setting>
-    <NodeImgPlacementToolbar v-if="mindMap" :mindMap="mindMap"></NodeImgPlacementToolbar>
+    <Setting :configData="mindMapConfig" :mindMap="mindMap"></Setting>
+    <NodeImgPlacementToolbar
+      v-if="mindMap"
+      :mindMap="mindMap"
+    ></NodeImgPlacementToolbar>
     <AiCreate v-if="mindMap && enableAi" :mindMap="mindMap"></AiCreate>
     <AiChat v-if="enableAi"></AiChat>
-    <div class="dragMask" v-if="showDragMask" @dragleave.stop.prevent="onDragleave" @dragover.stop.prevent
-      @drop.stop.prevent="onDrop">
+    <div
+      class="dragMask"
+      v-if="showDragMask"
+      @dragleave.stop.prevent="onDragleave"
+      @dragover.stop.prevent
+      @drop.stop.prevent="onDrop"
+    >
       <div class="dragTip">{{ $t('edit.dragTip') }}</div>
     </div>
   </div>
@@ -89,7 +117,7 @@ import ShortcutKey from './ShortcutKey.vue'
 import Contextmenu from './Contextmenu.vue'
 import RichTextToolbar from './RichTextToolbar.vue'
 import NodeNoteContentShow from './NodeNoteContentShow.vue'
-import { getData, storeData, storeConfig, getConfig } from '@/api'
+import { getConfig } from '@/api'
 import Navigator from './Navigator.vue'
 import NodeImgPreview from './NodeImgPreview.vue'
 import SidebarTrigger from './SidebarTrigger.vue'
@@ -182,6 +210,7 @@ export default {
       enableShowLoading: true,
       mindMap: null,
       mindMapData: null,
+      mindMapConfig: {},
       prevImg: '',
       isFirst: true,
       autoSaveTimer: null,
@@ -262,6 +291,7 @@ export default {
     if (window.IS_ELECTRON) {
       this.mindMap.keyCommand.addShortcut('Control+s', this.saveToLocal)
       this.$bus.$on('saveToLocal', this.saveToLocal)
+      this.$bus.$on('storeData', this.onStoreData)
     }
     Vue.prototype.$bus.$on('set_unsave', this.onSetUnsave)
   },
@@ -281,6 +311,7 @@ export default {
     if (window.IS_ELECTRON) {
       this.mindMap.keyCommand.removeShortcut('Control+s')
       this.$bus.$off('saveToLocal', this.saveToLocal)
+      this.$bus.$off('storeData', this.onStoreData)
     }
     this.unBindSaveEvent()
     this.mindMap.destroy()
@@ -324,11 +355,7 @@ export default {
       }
     },
 
-    /**
-     * @Author: 王林
-     * @Date: 2021-07-03 22:11:37
-     * @Desc: 获取思维导图数据，实际应该调接口获取
-     */
+    // 获取思维导图数据
     async getData() {
       let data = null
       if (this.filePath) {
@@ -357,25 +384,26 @@ export default {
           storeData = data.content
         } else {
           this.$message.info(this.$t('edit.emptyTip'))
-          storeData = simpleDeepClone(exampleData)
-          storeData.layout = defaultLayout
-          storeData.theme = {
-            template: defaultTheme,
-            config: {}
-          }
+          storeData = this.createDefaultMindMapData(defaultLayout, defaultTheme)
         }
       } else {
         this.isNewFile = true
         this.setFileName('未命名')
-        storeData = getData()
-        storeData.layout = defaultLayout
-        storeData.theme = {
-          template: defaultTheme,
-          config: {}
-        }
+        storeData = this.createDefaultMindMapData(defaultLayout, defaultTheme)
       }
-      storeData.config = getConfig()
       this.mindMapData = storeData
+      this.mindMapConfig = getConfig() || {}
+    },
+
+    // 生成默认思维导图数据
+    createDefaultMindMapData(defaultLayout, defaultTheme) {
+      const defaultData = simpleDeepClone(exampleData)
+      defaultData.layout = defaultLayout
+      defaultData.theme = {
+        template: defaultTheme,
+        config: {}
+      }
+      return defaultData
     },
 
     // 存储数据当数据有变时
@@ -397,7 +425,18 @@ export default {
       } else {
         this.isFirst = false
       }
-      storeData(data)
+      this.onStoreData({ root: data }, false)
+    },
+
+    // 更新思维导图数据
+    onStoreData(data, isSaveToLocal = true) {
+      this.mindMapData = {
+        ...this.mindMapData,
+        ...data
+      }
+      if (isSaveToLocal) {
+        this.saveToLocal()
+      }
     },
 
     // 自动保存
@@ -425,27 +464,17 @@ export default {
       this.setIsUnSave(true)
       clearTimeout(this.storeConfigTimer)
       this.storeConfigTimer = setTimeout(() => {
-        storeConfig({
+        this.onStoreData({
           view: data
         })
       }, 300)
     },
 
-    /**
-     * @Author: 王林
-     * @Date: 2021-08-02 23:19:52
-     * @Desc: 手动保存
-     */
-    // 手动保存
-    manualSave() {
-      let data = this.mindMap.getData(true)
-      storeConfig(data)
-    },
-
     // 初始化
     init() {
       let hasFileURL = this.hasFileURL()
-      let { root, layout, theme, view, config } = this.mindMapData
+      let { root, layout, theme, view } = this.mindMapData
+      const config = this.mindMapConfig
       // 如果url中存在要打开的文件，那么思维导图数据、主题、布局都使用默认的
       if (hasFileURL) {
         root = {
@@ -562,42 +591,39 @@ export default {
       })
       this.lastViewData = simpleDeepClone(this.mindMap.view.getTransformData())
       this.loadPlugins()
-      this.mindMap.keyCommand.addShortcut('Control+s', () => {
-        this.manualSave()
-      })
-        // 转发事件
-        ;[
-          'node_active',
-          'data_change',
-          'view_data_change',
-          'back_forward',
-          'node_contextmenu',
-          'node_click',
-          'draw_click',
-          'expand_btn_click',
-          'svg_mousedown',
-          'mouseup',
-          'mode_change',
-          'node_tree_render_end',
-          'rich_text_selection_change',
-          'transforming-dom-to-images',
-          'generalization_node_contextmenu',
-          'painter_start',
-          'painter_end',
-          'scrollbar_change',
-          'scale',
-          'translate',
-          'node_attachmentClick',
-          'node_attachmentContextmenu',
-          'demonstrate_jump',
-          'exit_demonstrate',
-          'node_note_dblclick',
-          'node_mousedown'
-        ].forEach(event => {
-          this.mindMap.on(event, (...args) => {
-            this.$bus.$emit(event, ...args)
-          })
+      // 转发事件
+      ;[
+        'node_active',
+        'data_change',
+        'view_data_change',
+        'back_forward',
+        'node_contextmenu',
+        'node_click',
+        'draw_click',
+        'expand_btn_click',
+        'svg_mousedown',
+        'mouseup',
+        'mode_change',
+        'node_tree_render_end',
+        'rich_text_selection_change',
+        'transforming-dom-to-images',
+        'generalization_node_contextmenu',
+        'painter_start',
+        'painter_end',
+        'scrollbar_change',
+        'scale',
+        'translate',
+        'node_attachmentClick',
+        'node_attachmentContextmenu',
+        'demonstrate_jump',
+        'exit_demonstrate',
+        'node_note_dblclick',
+        'node_mousedown'
+      ].forEach(event => {
+        this.mindMap.on(event, (...args) => {
+          this.$bus.$emit(event, ...args)
         })
+      })
       this.bindSaveEvent()
       // 如果应用被接管，那么抛出事件传递思维导图实例
       if (window.takeOverApp) {
@@ -611,7 +637,7 @@ export default {
       // 当正在编辑本地文件时通过该方法获取最新数据
       Vue.prototype.getCurrentData = () => {
         const fullData = this.mindMap.getData(true)
-        return { ...fullData, config: this.mindMapData.config }
+        return { ...fullData }
       }
     },
 
@@ -669,14 +695,23 @@ export default {
       this.handleShowLoading()
       let rootNodeData = null
       if (data.root) {
+        // 导入的是完整数据
+        this.mindMapData = data
         this.mindMap.setFullData(data)
         rootNodeData = data.root
       } else {
+        // 导入的只是节点数据
+        this.onStoreData(
+          {
+            root: data
+          },
+          false
+        )
         this.mindMap.setData(data)
         rootNodeData = data
       }
       this.mindMap.view.reset()
-      this.manualSave()
+      this.saveToLocal()
       // 如果导入的是富文本内容，那么自动开启富文本模式
       if (rootNodeData.data.richText && !this.openNodeRichText) {
         this.$bus.$emit('toggleOpenNodeRichText', true)
