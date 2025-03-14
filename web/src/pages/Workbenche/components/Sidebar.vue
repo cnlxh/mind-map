@@ -47,10 +47,21 @@
           @click="handleCommand('setting')"
         ></el-button>
       </el-tooltip>
+      <el-tooltip
+        :content="isVIP ? '已享受会员专属功能' : '开通会员享更多高级功能~'"
+        placement="top"
+        effect="dark"
+      >
+        <div class="vipButton" @click="handleCommand('openVipDialog')">
+          <span class="icon iconfont iconhuiyuan-"></span>
+          <span class="text">{{ isVIP ? '已是会员' : '开通会员' }}</span>
+        </div>
+      </el-tooltip>
     </div>
     <AboutDialog v-model="showAboutDialog"></AboutDialog>
     <SponsorDialog v-model="showSponsorDialog"></SponsorDialog>
     <SettingDialog v-model="showSettingDialog"></SettingDialog>
+    <VipDialog v-model="showVipDialog"></VipDialog>
   </div>
 </template>
 
@@ -61,12 +72,14 @@ import SponsorDialog from '../components/SponsorDialog.vue'
 import SettingDialog from '../components/SettingDialog.vue'
 import { mapState, mapMutations } from 'vuex'
 import { saveToRecent } from '@/utils/storage'
+import VipDialog from './VipDialog.vue'
 
 export default {
   components: {
     AboutDialog,
     SponsorDialog,
-    SettingDialog
+    SettingDialog,
+    VipDialog
   },
   data() {
     return {
@@ -74,12 +87,14 @@ export default {
       showSponsorDialog: false,
       showSettingDialog: false,
       dirList: [],
-      currentActive: 'recent'
+      currentActive: 'recent',
+      showVipDialog: false
     }
   },
   computed: {
     ...mapState({
-      isDark: state => state.localConfig.isDark
+      isDark: state => state.localConfig.isDark,
+      isVIP: state => state.isVIP
     })
   },
   created() {
@@ -227,6 +242,9 @@ export default {
         case 'setting':
           this.showSettingDialog = true
           break
+        case 'openVipDialog':
+          this.showVipDialog = true
+          break
         default:
           break
       }
@@ -325,6 +343,70 @@ export default {
 
   .bottom {
     flex-shrink: 0;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    margin-left: -4px;
+
+    .vipButton {
+      display: flex;
+      align-items: center;
+      margin-left: 8px;
+      border: 1px solid rgb(251, 231, 171);
+      height: 30px;
+      padding: 0 8px;
+      background-color: rgb(251, 231, 171);
+      border-top-left-radius: 15px;
+      border-bottom-right-radius: 15px;
+      color: rgb(237, 110, 78);
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+      transition: all 1s;
+      transform: rotateX(0);
+      background-color: rgb(51, 45, 38);
+      color: rgb(248, 207, 143);
+
+      .icon {
+        margin-right: 4px;
+      }
+
+      .text {
+        white-space: nowrap;
+      }
+
+      &:hover {
+        animation: shake 1s infinite both;
+      }
+    }
+  }
+}
+</style>
+
+<style lang="less">
+@keyframes shake {
+  0% {
+    transform: rotateZ(0deg);
+  }
+
+  20% {
+    transform: rotateZ(-5deg);
+  }
+
+  40% {
+    transform: rotateZ(5deg);
+  }
+
+  60% {
+    transform: rotateZ(-5deg);
+  }
+
+  80% {
+    transform: rotateZ(5deg);
+  }
+
+  100% {
+    transform: rotateZ(0deg);
   }
 }
 </style>

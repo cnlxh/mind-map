@@ -30,6 +30,7 @@
 import Edit from '../../Edit/Index.vue'
 import { mapState, mapMutations } from 'vuex'
 import { replaceFileInRecent } from '@/utils/storage'
+import { Message } from 'element-ui'
 
 export default {
   components: {
@@ -101,12 +102,14 @@ export default {
           customClass: this.isDark ? 'darkElMessageBox' : ''
         })
           .then(async () => {
+            Message.closeAll()
             this.resetData()
             this.pushRouter()
           })
           .catch(() => {})
         return
       }
+      Message.closeAll()
       this.resetData()
       this.pushRouter()
     },

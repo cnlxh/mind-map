@@ -355,11 +355,22 @@ export default {
       }
     },
 
+    tipSave() {
+      this.$message({
+          message: '本软件数据将保存在电脑本地，编辑完后记得点【保存】哦~',
+          type: 'warning',
+          duration: 0,
+          showClose: true
+        });
+    },
+
     // 获取思维导图数据
     async getData() {
       let data = null
       if (this.filePath) {
         data = await window.electronAPI.getFileContent(this.filePath)
+      } else {
+        this.tipSave()
       }
       this.clientConfig = getClientConfig() || {}
       const defaultTheme = this.clientConfig.theme || 'classic4'

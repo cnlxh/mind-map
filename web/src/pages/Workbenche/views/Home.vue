@@ -40,6 +40,7 @@ export default {
     }
   },
   created() {
+    this.checkIsVip()
     this.initLocalConfig()
     this.checkIsCreate()
   },
@@ -51,8 +52,16 @@ export default {
       'setFilePath',
       'setIsNeedCreate',
       'setFileName',
-      'setLocalConfig'
+      'setLocalConfig',
+      'setIsVIP'
     ]),
+
+    checkIsVip() {
+      const purchasedUser = utools.isPurchasedUser()
+      if (purchasedUser) {
+        this.setIsVIP(true)
+      }
+    },
 
     // 初始化本地配置
     initLocalConfig() {

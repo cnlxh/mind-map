@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 2479351 */
-  src: url('iconfont.woff2?t=1739843331607') format('woff2'),
-       url('iconfont.woff?t=1739843331607') format('woff'),
-       url('iconfont.ttf?t=1739843331607') format('truetype');
+  src: url('iconfont.woff2?t=1741785226032') format('woff2'),
+       url('iconfont.woff?t=1741785226032') format('woff'),
+       url('iconfont.ttf?t=1741785226032') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.iconjibiji:before {
+  content: "\e618";
+}
+
+.iconhuiyuan-:before {
+  content: "\e615";
 }
 
 .iconAIshengcheng:before {
